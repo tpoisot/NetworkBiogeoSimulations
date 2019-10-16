@@ -8,8 +8,8 @@ using DataFrames
 using CSV
 
 struct Island
-    extinction::Float64   # Extinction rate
-    immigration::Float64  # Immigration rate
+	extinction::Float64   # Extinction rate
+	immigration::Float64  # Immigration rate
 end
 
 
