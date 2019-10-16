@@ -114,6 +114,7 @@ function results_to_table(results)
 end
 
 df = results_to_table(results)
+df[:α] = df[:immigration]./df[:extinction]
 
 
 StatsPlots.@df df Plots.scatter(:α, :hosts, ylim=(0,1),
