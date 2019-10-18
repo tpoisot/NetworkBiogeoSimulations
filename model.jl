@@ -83,6 +83,8 @@ end
 
 results = [simulation(mainland, i) for i in islands]
 
+lpbrim(N::T) where {T <: AbstractEcologicalNetwork} = N |> lp |> x -> brim(x...) |> x -> Q(x...)
+
 function results_to_table(results)
     mainland_spe = specificity(mainland)
     df = DataFrame(
@@ -93,6 +95,7 @@ function results_to_table(results)
 		η = Float64[],
 		ρ = Float64[],
 		connectance = Float64[],
+		modularity = Float64[],
 		links = Float64[]
 	)
     for r in results
@@ -106,6 +109,7 @@ function results_to_table(results)
 					η(n),
 					ρ(n),
 					connectance(n),
+					lpbrim(n),
 					links(n)/links(mainland)
 				))
             end
@@ -132,6 +136,11 @@ StatsPlots.@df df Plots.scatter(:α, :ρ, ylim=(0,1),
 	xlim=(0,2), legend=:topleft, lab="Spectral radius", c=:grey)
 Plots.hline!([η(mainland)], c=:black, ls=:dot, lab="Mainland \\rho")
 Plots.savefig(joinpath("figures", "radius.png"))
+
+StatsPlots.@df df Plots.scatter(:α, :modularity, ylim=(0,1),
+	xlim=(0,2), legend=:topleft, lab="Modularity", c=:grey)
+Plots.hline!([lpbrim(mainland)], c=:black, ls=:dot, lab="Mainland Q")
+Plots.savefig(joinpath("figures", "modularity.png"))
 
 StatsPlots.@df df Plots.scatter(:α, :connectance, ylim=(0,1), xlim=(0,2), legend=:topleft, lab="Connectance", c=:grey)
 Plots.hline!([connectance(mainland)], c=:black, ls=:dot, lab="Mainland Co")
