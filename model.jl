@@ -83,7 +83,6 @@ end
 
 results = [simulation(mainland, i) for i in islands]
 
-
 function results_to_table(results)
     mainland_spe = specificity(mainland)
     df = DataFrame(
@@ -91,7 +90,8 @@ function results_to_table(results)
 		extinction = Float64[],
 		hosts = Float64[],
 		parasites = Float64[],
-		nestedness = Float64[],
+		η = Float64[],
+		ρ = Float64[],
 		connectance = Float64[],
 		links = Float64[]
 	)
@@ -104,6 +104,7 @@ function results_to_table(results)
 					richness(n; dims=2)./richness(mainland; dims=2),
 					richness(n; dims=1)./richness(mainland; dims=1),
 					η(n),
+					ρ(n),
 					connectance(n),
 					links(n)/links(mainland)
 				))
@@ -116,27 +117,22 @@ end
 df = results_to_table(results)
 df[:α] = df[:immigration]./df[:extinction]
 
-
 StatsPlots.@df df Plots.scatter(:α, :hosts, ylim=(0,1),
 	legend=:bottomright, lw=3, c=:black, ls=:dash, lab="Hosts")
 StatsPlots.@df df Plots.scatter!(:α, :parasites, c=:white, lab="Parasites")
 StatsPlots.@df df Plots.scatter!(:α, :links, c=:grey, lab="Links")
+Plots.savefig(joinpath("figures", "richness.png"))
 
-
-StatsPlots.@df df Plots.scatter(:α, :nestedness, ylim=(0,1),
+StatsPlots.@df df Plots.scatter(:α, :η, ylim=(0,1),
 	xlim=(0,2), legend=:topleft, lab="Nestedness", c=:grey)
 Plots.hline!([η(mainland)], c=:black, ls=:dot, lab="Mainland \\eta")
+Plots.savefig(joinpath("figures", "nestedness.png"))
 
+StatsPlots.@df df Plots.scatter(:α, :ρ, ylim=(0,1),
+	xlim=(0,2), legend=:topleft, lab="Spectral radius", c=:grey)
+Plots.hline!([η(mainland)], c=:black, ls=:dot, lab="Mainland \\rho")
+Plots.savefig(joinpath("figures", "radius.png"))
 
 StatsPlots.@df df Plots.scatter(:α, :connectance, ylim=(0,1), xlim=(0,2), legend=:topleft, lab="Connectance", c=:grey)
 Plots.hline!([connectance(mainland)], c=:black, ls=:dot, lab="Mainland Co")
-
-
-StatsPlots.@df df Plots.scatter(:hosts, :nestedness, xlim=(0,1), ylim=(0,1), legend=:topleft, lab="Hosts", c=:white)
-StatsPlots.@df df Plots.scatter!(:parasites, :nestedness, legend=:topleft, lab="Parasites", c=:black)
-StatsPlots.@df df Plots.scatter!(:links, :nestedness, legend=:topleft, lab="Links", c=:grey)
-
-
-
-StatsPlots.@df df Plots.scatter(:hosts, :parasites, legend=:topleft,
-  lab="Links", c=:grey)
+Plots.savefig(joinpath("figures", "connectance.png"))
