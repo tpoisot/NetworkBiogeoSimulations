@@ -81,8 +81,8 @@ for i in eachindex(extinctionrates)
 end
 
 @info "subsampling islands"
-filter!(i -> 0.0 < α(i) ≤ 4.0, islands)
-n_islands = min(300, length(islands))
+filter!(i -> -1.0 ≤ log10(α(i)) ≤ 1.0, islands)
+n_islands = min(200, length(islands))
 islands = StatsBase.sample(islands, n_islands, replace=false)
 
 @info "simulations"
@@ -124,29 +124,29 @@ df = results_to_table(results)
 df[:α] = df[:immigration]./df[:extinction]
 
 @info "plotting"
-StatsPlots.@df df Plots.scatter(:α, :hosts, ylim=(0,1),
-	legend=:bottomright, lw=3, c=:black, ls=:dash, lab="Hosts")
-StatsPlots.@df df Plots.scatter!(:α, :parasites, c=:white, lab="Parasites")
-StatsPlots.@df df Plots.scatter!(:α, :links, c=:grey, lab="Links")
+StatsPlots.@df df Plots.scatter(:α, :hosts, legend=:bottomright, c=:black, lab="Hosts", frame=:box)
+StatsPlots.@df df Plots.scatter!(:α, :parasites, c=:grey, m=:square, msw=0, lab="Parasites")
+StatsPlots.@df df Plots.scatter!(:α, :links, c=:darkgrey, m=:utriangle, msw=0, lab="Links")
+Plots.xaxis!(:log10, (0.1,10.0), "\\alpha")
+Plots.yaxis!((0,1), "Relative number")
 Plots.savefig(joinpath("figures", "richness.png"))
 
-StatsPlots.@df df Plots.scatter(:α, :η, ylim=(0,1),
-	xlim=(0,2), legend=:topleft, lab="Nestedness", c=:grey)
-Plots.hline!([η(mainland)], c=:black, ls=:dot, lab="Mainland \\eta")
+StatsPlots.@df df Plots.scatter(:α, :η, legend=:topleft, lab="", mc=:white, frame=:box)
+Plots.hline!([η(mainland)], c=:grey, lw=2, ls=:dash, lab="")
+Plots.xaxis!(:log10, (0.1,10.0), "\\alpha")
+Plots.yaxis!((0,1), "Nestedness\\eta")
 Plots.savefig(joinpath("figures", "nestedness.png"))
 
-StatsPlots.@df df Plots.scatter(:α, :ρ, ylim=(0,1),
-	xlim=(0,2), legend=:topleft, lab="Spectral radius", c=:grey)
-Plots.hline!([η(mainland)], c=:black, ls=:dot, lab="Mainland \\rho")
+StatsPlots.@df df Plots.scatter(:α, :ρ, legend=:topleft, lab="", mc=:white, frame=:box)
+Plots.hline!([ρ(mainland)], c=:grey, lw=2, ls=:dash, lab="")
+Plots.xaxis!(:log10, (0.1,10.0), "\\alpha")
+Plots.yaxis!((0,1), "Spectral radius\\rho")
 Plots.savefig(joinpath("figures", "radius.png"))
 
-StatsPlots.@df df Plots.scatter(:α, :modularity, ylim=(0,1),
-	xlim=(0,2), legend=:topleft, lab="Modularity", c=:grey)
-Plots.hline!([lpbrim(mainland)], c=:black, ls=:dot, lab="Mainland Q")
-Plots.savefig(joinpath("figures", "modularity.png"))
-
-StatsPlots.@df df Plots.scatter(:α, :connectance, ylim=(0,1), xlim=(0,2), legend=:topleft, lab="Connectance", c=:grey)
-Plots.hline!([connectance(mainland)], c=:black, ls=:dot, lab="Mainland Co")
+StatsPlots.@df df Plots.scatter(:α, :connectance, legend=:topleft, lab="", mc=:white, frame=:box)
+Plots.hline!([connectance(mainland)], c=:grey, lw=2, ls=:dash, lab="")
+Plots.xaxis!(:log10, (0.1,10.0), "\\alpha")
+Plots.yaxis!((0,1), "Connectance")
 Plots.savefig(joinpath("figures", "connectance.png"))
 
 @info "ended"
