@@ -67,8 +67,8 @@ mainland = reduce(union, networks)
 
 
 islands = Island[]
-immigrationrates = 10.0.^rand(Distributions.Uniform(-1.3, -0.3), 1000)
-extinctionrates = 10.0.^rand(Distributions.Uniform(-1.3, -0.3), 1000)
+immigrationrates = 10.0.^rand(Distributions.Uniform(-1.3, -0.3), 5000)
+extinctionrates = 10.0.^rand(Distributions.Uniform(-1.3, -0.3), 5000)
 for i in eachindex(extinctionrates)
 	push!(islands, Island(extinctionrates[i], immigrationrates[i]))
 end
