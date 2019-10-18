@@ -1,5 +1,7 @@
 import Pkg; Pkg.activate(".")
 
+@info "started"
+
 using StatsBase
 using EcologicalNetworks
 using Distributions
@@ -60,30 +62,31 @@ function simulate(mainland::T, island::Island; steps::Integer=200) where {T <: A
 	return networks
 end
 
+function simulation(n::BipartiteNetwork, i::Island)
+	S = simulate(n, i; steps=200)
+	return i => [last(S)]
+end
 
+@info "generating networks"
 ids = getfield.(filter(x -> occursin("Hadfield", x.Reference), web_of_life()), :ID);
 networks = convert.(BinaryNetwork, web_of_life.(ids));
 mainland = reduce(union, networks)
 
-
+@info "generating islands"
 islands = Island[]
-immigrationrates = 10.0.^rand(Distributions.Uniform(-1.3, -0.3), 5000)
-extinctionrates = 10.0.^rand(Distributions.Uniform(-1.3, -0.3), 5000)
+immigrationrates = 10.0.^rand(Distributions.Uniform(-1.3, -0.3), 1000)
+extinctionrates = 10.0.^rand(Distributions.Uniform(-1.3, -0.3), 1000)
 for i in eachindex(extinctionrates)
 	push!(islands, Island(extinctionrates[i], immigrationrates[i]))
 end
 
-filter!(i -> 0.0 < α(i) ≤ 2.0, islands)
-islands = StatsBase.sample(islands, 200, replace=false)
+@info "subsampling islands"
+filter!(i -> 0.0 < α(i) ≤ 4.0, islands)
+n_islands = min(300, length(islands))
+islands = StatsBase.sample(islands, n_islands, replace=false)
 
-function simulation(n::BipartiteNetwork, i::Island)
-	S = simulate(n, i; steps=50)
-	return i => [last(S)]
-end
-
+@info "simulations"
 results = [simulation(mainland, i) for i in islands]
-
-lpbrim(N::T) where {T <: AbstractEcologicalNetwork} = N |> lp |> x -> brim(x...) |> x -> Q(x...)
 
 function results_to_table(results)
     mainland_spe = specificity(mainland)
@@ -95,7 +98,6 @@ function results_to_table(results)
 		η = Float64[],
 		ρ = Float64[],
 		connectance = Float64[],
-		modularity = Float64[],
 		links = Float64[]
 	)
     for r in results
@@ -109,7 +111,6 @@ function results_to_table(results)
 					η(n),
 					ρ(n),
 					connectance(n),
-					lpbrim(n),
 					links(n)/links(mainland)
 				))
             end
@@ -118,9 +119,11 @@ function results_to_table(results)
     return df
 end
 
+@info "analysis"
 df = results_to_table(results)
 df[:α] = df[:immigration]./df[:extinction]
 
+@info "plotting"
 StatsPlots.@df df Plots.scatter(:α, :hosts, ylim=(0,1),
 	legend=:bottomright, lw=3, c=:black, ls=:dash, lab="Hosts")
 StatsPlots.@df df Plots.scatter!(:α, :parasites, c=:white, lab="Parasites")
@@ -145,3 +148,5 @@ Plots.savefig(joinpath("figures", "modularity.png"))
 StatsPlots.@df df Plots.scatter(:α, :connectance, ylim=(0,1), xlim=(0,2), legend=:topleft, lab="Connectance", c=:grey)
 Plots.hline!([connectance(mainland)], c=:black, ls=:dot, lab="Mainland Co")
 Plots.savefig(joinpath("figures", "connectance.png"))
+
+@info "ended"
