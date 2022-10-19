@@ -1,14 +1,11 @@
-import Pkg; Pkg.activate(".")
-
-@info "started"
-
 using StatsBase
 using EcologicalNetworks
 using Distributions
 using Plots
 using StatsPlots
 using DataFrames
-using CSV
+
+@info "started"
 
 struct Island
 	extinction::Float64   # Extinction rate
